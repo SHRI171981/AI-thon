@@ -23,14 +23,6 @@
         <NavItem -name="About"/>
       </RouterLink>
     </div>
-    <!-- <button @click="themeStore.toggleTheme()" class="p-2 rounded-lg bg-gray-200 dark:bg-gray-700">
-    {{ themeStore.darkMode ? "🌙 Dark Mode" : "☀️ Light Mode" }}
-  </button> -->
-    <!-- <div class="justify-end bg-gray-400" >
-      <RouterLink :to="{name:'profile'}" active-class="active" class="rounded-3xl bg-black">
-        <NavItem -name="Profile"/>
-      </RouterLink>
-    </div> -->
   </div>
 
 
