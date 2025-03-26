@@ -3,15 +3,18 @@
     <div class="text-center">
       <h1 class="text-3xl font-bold text-gray-800 mb-6">Upload an Image or Paste Text</h1>
 
-      <!-- Image Upload Section -->
+      <!-- Camera Component -->
       <div
-        class="w-96 h-40 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center mb-6 cursor-pointer hover:border-blue-500"
+        class="w-96 h-40 border-2 border-gray-300 rounded-lg flex flex-col items-center justify-center mb-6 bg-gray-200"
       >
-        <p class="text-gray-500 mb-2">Drag & Drop an image here or <span class="text-blue-500">Click to Upload</span></p>
-        <span class="text-gray-800 text-4xl pt-2">
-          <Upload />
-        </span>
+        <CaptureCamera />
       </div>
+
+      <button
+        class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-8 rounded-lg flex items-center mx-auto mb-6"
+      >
+        Capture
+      </button>
 
       <!-- Text Input Section -->
       <div
@@ -34,6 +37,6 @@
 </template>
 
 <script setup>
-import { Upload } from 'lucide-vue-next';
 import { Mic } from 'lucide-vue-next';
+import CaptureCamera from '@/components/CaptureCamera.vue';
 </script>
