@@ -7,10 +7,12 @@
       <div
         class="w-96 h-40 border-2 border-gray-300 rounded-lg flex flex-col items-center justify-center mb-6 bg-gray-200"
       >
-        <CaptureCamera />
+        <CameraCapture ref="camera" />
       </div>
 
+      <!-- Capture Button -->
       <button
+        @click="captureImage"
         class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-8 rounded-lg flex items-center mx-auto mb-6"
       >
         Capture
@@ -37,6 +39,16 @@
 </template>
 
 <script setup>
+import { ref } from 'vue';
 import { Mic } from 'lucide-vue-next';
-import CaptureCamera from '@/components/CaptureCamera.vue';
+import CameraCapture from '@/components/CameraCapture.vue';
+
+const camera = ref(null);
+
+const captureImage = () => {
+  if (camera.value) {
+    camera.value.capture(); // Call capture function inside CameraCapture.vue
+  }
+};
 </script>
+
