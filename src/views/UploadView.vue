@@ -7,7 +7,7 @@
       <div
         class="w-96 h-40 border-2 border-gray-300 rounded-lg flex flex-col items-center justify-center mb-6 bg-gray-200"
       >
-        <CameraCapture ref="camera" />
+        <CameraCapture ref="cameraRef" />
       </div>
 
       <!-- Capture Button -->
@@ -43,12 +43,13 @@ import { ref } from 'vue';
 import { Mic } from 'lucide-vue-next';
 import CameraCapture from '@/components/CameraCapture.vue';
 
-const camera = ref(null);
+const cameraRef = ref(null);
 
 const captureImage = () => {
-  if (camera.value) {
-    camera.value.capture(); // Call capture function inside CameraCapture.vue
+  if (cameraRef.value?.capture) {
+    cameraRef.value.capture(); // Call the capture function exposed from CameraCapture.vue
+  } else {
+    console.error("Capture function not found in CameraCapture.vue");
   }
 };
 </script>
-
