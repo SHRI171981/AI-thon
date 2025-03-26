@@ -1,5 +1,24 @@
+<template>
+  <div class="relative flex flex-col items-center justify-center min-h-screen">
+    <!-- Camera Stream -->
+    <video v-if="!capturedImage" ref="videoElement" class="w-full max-w-md rounded-lg" autoplay></video>
+    <canvas ref="canvasElement" class="hidden"></canvas>
+    
+    <!-- Captured Image -->
+    <div v-if="capturedImage" class="mt-4">
+      <img :src="capturedImage" class="rounded-lg w-full max-w-md" />
+      <button @click="retakeImage" class="mt-2 bg-red-500 text-white px-4 py-2 rounded-lg">Retake</button>
+    </div>
+    
+    <!-- Capture Button -->
+    <button v-if="!capturedImage" @click="capture" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded-lg">
+      Capture
+    </button>
+  </div>
+</template>
+
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, defineExpose } from "vue";
 
 const videoElement = ref(null);
 const canvasElement = ref(null);
@@ -50,5 +69,22 @@ const listenForRetake = () => {
   speechRecognition.lang = "en-US";
   speechRecognition.start();
 
-  speechRecognition.onresult = (event
+  speechRecognition.onresult = (event) => {
+    const command = event.results[0][0].transcript.toLowerCase();
+    if (command.includes("retake")) {
+      retakeImage();
+    }
+  };
+};
 
+// Retake Image
+const retakeImage = () => {
+  capturedImage.value = null;
+  videoElement.value.play();
+};
+
+// **Expose the capture function**
+defineExpose({
+  capture
+});
+</script>
