@@ -1,80 +1,85 @@
 <template>
-  <div class="flex flex-col items-center justify-center min-h-screen">
-    <h1 class="text-3xl font-bold text-gray-800 mb-6">Upload an Image or Paste Text</h1>
-
-    <!-- Camera Capture Section -->
-    <div v-if="!imageCaptured" class="w-96 h-40 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center mb-6">
-      <video ref="video" class="w-full h-full" autoplay></video>
-      <button @click="captureImage" class="bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg mt-2">Capture</button>
+  <div class="relative flex flex-col items-center justify-center min-h-screen">
+    <!-- Camera Stream -->
+    <video v-if="!capturedImage" ref="videoElement" class="w-full max-w-md rounded-lg" autoplay></video>
+    <canvas ref="canvasElement" class="hidden"></canvas>
+    
+    <!-- Captured Image -->
+    <div v-if="capturedImage" class="mt-4">
+      <img :src="capturedImage" class="rounded-lg w-full max-w-md" />
+      <button @click="retakeImage" class="mt-2 bg-red-500 text-white px-4 py-2 rounded-lg">Retake</button>
     </div>
     
-    <!-- Display Captured Image -->
-    <div v-else class="w-96 h-40 border border-gray-300 rounded-lg flex flex-col items-center justify-center mb-6">
-      <img :src="capturedImage" class="w-full h-full object-cover" />
-      <button @click="retakeImage" class="bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg mt-2">Retake</button>
-    </div>
-    
-    <!-- Text Input Section -->
-    <div class="w-96 h-28 border border-gray-300 rounded-lg flex flex-col items-center justify-center mb-6">
-      <p class="text-gray-500 mb-2">Paste or type text here...</p>
-      <span class="text-gray-800 text-4xl">
-        <Mic />
-      </span>
-    </div>
-    
-    <!-- Read Aloud Button -->
-    <button class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-8 rounded-lg flex items-center mx-auto">
-      <span class="mr-2">🔊</span> Read Aloud
+    <!-- Capture Button -->
+    <button v-if="!capturedImage" @click="capture" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded-lg">
+      Capture
     </button>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { Mic } from 'lucide-vue-next';
+import { ref, onMounted } from "vue";
 
-const video = ref(null);
-const imageCaptured = ref(false);
+const videoElement = ref(null);
+const canvasElement = ref(null);
 const capturedImage = ref(null);
+let speechRecognition = null;
 
-// Start camera
+// Start Camera
 onMounted(() => {
-  navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
-    video.value.srcObject = stream;
-  });
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then((stream) => {
+      videoElement.value.srcObject = stream;
+      videoElement.value.play();
+    })
+    .catch((error) => console.error("Camera access denied:", error));
 });
 
-// Capture image
-const captureImage = () => {
-  const canvas = document.createElement('canvas');
-  const context = canvas.getContext('2d');
-  canvas.width = video.value.videoWidth;
-  canvas.height = video.value.videoHeight;
-  context.drawImage(video.value, 0, 0, canvas.width, canvas.height);
-  capturedImage.value = canvas.toDataURL('image/png');
-  imageCaptured.value = true;
+// Capture Image
+const capture = () => {
+  const ctx = canvasElement.value.getContext("2d");
+  canvasElement.value.width = videoElement.value.videoWidth;
+  canvasElement.value.height = videoElement.value.videoHeight;
+  ctx.drawImage(videoElement.value, 0, 0);
+  const imageData = canvasElement.value.toDataURL("image/png");
 
-  validateImage();
-};
-
-// Image validation logic
-const validateImage = () => {
-  const isValid = Math.random() > 0.5; // Simulated validation check
-  if (!isValid) {
-    speakMessage("Image is not good. Say 'retake' to capture again.");
+  if (isImageGood(imageData)) {
+    capturedImage.value = imageData; // Show image if valid
+  } else {
+    speak("Image is not good. Do you want to retake it?");
+    listenForRetake();
   }
 };
 
-// Retake image
-const retakeImage = () => {
-  imageCaptured.value = false;
-  capturedImage.value = null;
+// Validate Image
+const isImageGood = (imageData) => {
+  return imageData.length > 5000; // Example check (adjust as needed)
 };
 
-// Voice feedback
-const speakMessage = (message) => {
+// Voice Output
+const speak = (message) => {
   const speech = new SpeechSynthesisUtterance(message);
+  speech.lang = "en-US";
   window.speechSynthesis.speak(speech);
 };
-</script>
 
+// Listen for "Retake"
+const listenForRetake = () => {
+  speechRecognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  speechRecognition.lang = "en-US";
+  speechRecognition.start();
+
+  speechRecognition.onresult = (event) => {
+    const command = event.results[0][0].transcript.toLowerCase();
+    if (command.includes("retake")) {
+      retakeImage();
+    }
+  };
+};
+
+// Retake Image
+const retakeImage = () => {
+  capturedImage.value = null;
+  videoElement.value.play();
+};
+</script>
