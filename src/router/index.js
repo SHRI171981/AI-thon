@@ -33,11 +33,11 @@ const router = createRouter({
       name: 'about',
       component: AboutView
     },
-    {
-    path: '/camera',
-    name: 'CameraCapture',
-    component: CaptureCamera
-    }
+    // {
+    // path: '/camera',
+    // name: 'CameraCapture',
+    // component: CaptureCamera
+    // }
   ],
 })
 

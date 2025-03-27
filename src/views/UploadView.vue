@@ -1,55 +1,66 @@
 <template>
   <div class="flex justify-center min-h-screen my-12">
     <div class="text-center">
-      <h1 class="text-3xl font-bold text-gray-800 mb-6">Upload an Image or Paste Text</h1>
+      <h1 class="text-3xl font-bold text-gray-800 mb-6">Upload or Capture an Image</h1>
 
-      <!-- Camera Component -->
+      <!-- Camera Live Feed Section -->
       <div
-        class="w-96 h-40 border-2 border-gray-300 rounded-lg flex flex-col items-center justify-center mb-6 bg-gray-200"
+        class="w-fit h-fit border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center mb-6 overflow-hidden"
       >
-        <CameraCapture ref="cameraRef" />
+        <video ref="videoElement" autoplay playsinline class="w-full h-full object-cover"></video>
+        <button
+          class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg mt-2"
+          @click="capturePhoto"
+        >
+          Capture Photo
+        </button>
       </div>
 
-      <!-- Capture Button -->
-      <button
-        @click="captureImage"
-        class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-8 rounded-lg flex items-center mx-auto mb-6"
-      >
-        Capture
-      </button>
-
-      <!-- Text Input Section -->
-      <div
-        class="w-96 h-28 border border-gray-300 rounded-lg flex flex-col items-center justify-center mb-6"
-      >
-        <p class="text-gray-500 mb-2">Paste or type text here...</p>
-        <span class="text-gray-800 text-4xl">
-          <Mic />
-        </span>
+      <!-- Captured Image Preview Section -->
+      <div v-if="imageSrc" class="mt-6">
+        <h2 class="text-xl font-bold mb-4">Captured Image:</h2>
+        <img :src="imageSrc" alt="Captured" class="w-fit rounded-lg border" />
       </div>
-
-      <!-- Read Aloud Button -->
-      <button
-        class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-8 rounded-lg flex items-center mx-auto"
-      >
-        <span class="mr-2">🔊</span> Read Aloud
-      </button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { Mic } from 'lucide-vue-next';
-import CameraCapture from '@/components/CameraCapture.vue';
+import { ref, onMounted } from 'vue';
 
-const cameraRef = ref(null);
+const videoElement = ref(null);
+const imageSrc = ref('');
+let stream;
 
-const captureImage = () => {
-  if (cameraRef.value?.capture) {
-    cameraRef.value.capture(); // Call the capture function exposed from CameraCapture.vue
-  } else {
-    console.error("Capture function not found in CameraCapture.vue");
+// Start Camera
+const startCamera = async () => {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    videoElement.value.srcObject = stream;
+  } catch (error) {
+    console.error('Error accessing the camera:', error);
+    alert('Unable to access the camera. Please check permissions.');
   }
 };
+
+// Capture Photo
+const capturePhoto = () => {
+  if (!videoElement.value) return;
+
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d');
+
+  canvas.width = videoElement.value.videoWidth;
+  canvas.height = videoElement.value.videoHeight;
+
+  // Draw video frame to canvas
+  context.drawImage(videoElement.value, 0, 0, canvas.width, canvas.height);
+
+  // Convert canvas to image and display
+  imageSrc.value = canvas.toDataURL('image/png');
+};
+
+onMounted(() => {
+  startCamera();
+});
 </script>

@@ -32,7 +32,7 @@ recognition.lang = 'en-US';
 recognition.interimResults = false;
 recognition.continuous = true;
 
-let commands = ['upload', 'summarize', 'compare', 'commands']
+let commands = ['upload', 'summarize', 'compare', 'news', 'commands', ]
 
 recognition.onresult = (event) => {
   recognition.stop();
@@ -40,19 +40,17 @@ recognition.onresult = (event) => {
   output.value = transcript;
 };
 
+let command;
+
 recognition.onend = () => {
-  console.log("Rec ended")
   if(
-    output.value.startsWith('okay') &
+    output.value.startsWith('okay') &&
     output.value.split(' ').length === 2)
       {
-      let command = output.value.split(' ').at(-1);
+      command = output.value.split(' ').at(-1);
       if(commands.includes(command)){
-        endText();
-        speakText((command));
-        console.log("HERE")
+        speakText("Your command is: " + command);
         confirmCommand();
-        console.log("THERE")
       }
       else{
         speakText("Invalid command");
@@ -71,12 +69,8 @@ recognition.onerror = (event) => {
 };
 
 const startRecognition = () => {
-  startText();
+  speakText("To say a command, say okay followed by the command");
   recognition.start();
-};
-
-const startText = () => {
-  speakText("c");
 };
 
 const seeCommands = () => {
@@ -85,6 +79,8 @@ const seeCommands = () => {
 
 const confirmation = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
 confirmation.lang = 'en-US';
+confirmation.interimResults = false; // do not store results in between
+confirmation.continuous = true; // do not stop at a single output
 
 const confirmCommand = () => {
   speakText("To confirm, say yes. To reject, say no.");
@@ -94,13 +90,14 @@ const confirmCommand = () => {
     const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase();
     output.value = transcript;
 
-    console.log("You said:", transcript);
     confirmation.stop();
 
     if (transcript === 'yes') {
       speakText("Confirmed.");
+      performAction(); // Perform the action based on the command
     } else if (transcript === 'no') {
-      speakText("Rejected.");
+      speakText("Rejected. Reverting back");
+      startRecognition();
     } else {
       speakText("Invalid input. Please say yes or no.");
       setTimeout(confirmCommand, 500); // Retry after a short delay
@@ -113,15 +110,66 @@ const confirmCommand = () => {
   };
 
   confirmation.onend = () => {
-    console.log("Speech recognition ended.");
+    console.log("Speech confirmation ended.");
   };
 };
 
-const endText = () => {
-  speakText("Your command is: ");
+const news = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+news.lang = 'en-US';
+news.interimResults = false;
+news.continuous = true;
+
+const news_list = [
+  "NVIDIA announces new AI-pow",
+  "Intel reveals next-gen processors",
+  "Microsoft intro",
+  "Apple plans to laun",
+  "Dell unveils ultra",
+  "AMD reports record s",
+  "Lenovo introduces AI-enha",
+  "Google partners with Acer f",
+  "ASUS announces new gaming",
+  "HP launches eco-friendly laptops made from recycled materials."
+];
+
+
+// Function to perform actions based on the command
+const performAction = () => {
+  switch (command) {
+    case 'upload':
+      speakText("Camera started");
+      
+      break;
+    case 'summarize':
+      speakText("Summarizing the content...");
+      break;
+    case 'compare':
+      speakText("Comparing the files...");
+      break;
+    case 'commands':
+      speakText("Showing available commands...");
+      break;
+    case 'news':
+      speakText("What news would you like to hear?");
+
+      news.start();
+      news.onresult = (event) => {
+        const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase();
+        output.value = transcript;
+
+        news.stop();
+        speakText("Searching for:" + transcript + "news");
+      }
+
+      for(const news_item of news_list){
+        speakText("The next news is: ")
+        speakText(news_item);
+      }
+      break;
+    default:
+      speakText("Unknown command.");
+  }
 };
-
-
 
 const speakText = (text) => {
   const speech = new SpeechSynthesisUtterance(text);
